@@ -191,6 +191,15 @@ const SimpleAgoraChat = () =>{
     setConn(new AC.connection({
       appKey: '611016787#1187288',
     }))
+
+    //cleant the event handler when the aplication are closed or reloaded
+    return ()=>{
+      console.log('holi')
+      if(conn){
+        conn.removeEventHandler("connection&message")
+      }
+      
+    }
   },[])
 
   useEffect(()=>{
