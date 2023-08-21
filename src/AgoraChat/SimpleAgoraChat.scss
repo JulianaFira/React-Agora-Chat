@@ -1,0 +1,50 @@
+.SimpleAgoraChatContainer{
+  display: flex;
+  flex-direction: row;
+  .InputInfoGroup{
+    display: flex;
+    flex-direction: column;
+    width: 30%;
+    padding: 20px;
+  }
+  .EventsLogGroup{
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    width: 70%;
+    word-break: break-all;
+    .LogEvents{
+      display: flex;
+      flex-direction: column;
+      width: 30%;
+      border-left: 1px solid;
+      padding: 20px;
+      max-height: 600px;
+      scroll-behavior: auto;
+      overflow: auto;
+
+    }
+    .SingleChatEvents{
+      display: flex;
+      flex-direction: column;
+      width: 30%;
+      border-left: 1px solid;
+      padding: 20px;
+      max-height: 600px;
+      scroll-behavior: auto;
+      overflow: auto;
+
+    }
+    .ChatRoomEvents{
+      display: flex;
+      flex-direction: column;
+      width: 30%;
+      border-left: 1px solid;
+      padding: 20px;
+      max-height: 600px;
+      scroll-behavior: auto;
+      overflow: auto;
+
+    }
+  }
+}
