@@ -4,7 +4,7 @@ import './SimpleAgoraChat.scss'
 
 const SimpleAgoraChat = () =>{
 
-  const [conn, setConn ]= useState<AgoraChat.Connection>()
+  const agoraConn = useRef<AgoraChat.Connection | null>(null)
 
   const [appToken, setAppToken] = useState('')
 
@@ -21,46 +21,54 @@ const SimpleAgoraChat = () =>{
   const singleChatRef = useRef<HTMLDivElement | null>(null);
   const chatroomRef = useRef<HTMLDivElement | null>(null);
 
-  const startEventListeners = ()=>{
-   if(conn){
-    conn.addEventHandler("connection&message", {
-      // Occurs when the app is connected to Agora Chat.
-      onConnected: () => {
-        printLogMessage('Connect success !')
-      },
-      // Occurs when the app is disconnected from Agora Chat.
-      onDisconnected: () => {
-        printLogMessage('Logout success !')
-      },
-      // Occurs when a text message is received.
+  const startConnection = async ()=>{
 
-      onTextMessage: (message) => {
-        console.log(message.chatType)
-        if(message.chatType === 'chatRoom' || message.chatType === 'singleChat'){
-          printChatMessage( message.chatType,`${message.from}: ${message.msg}`)
-        }else{
-          printLogMessage("Message from: " + message.from + " Message: " + message.msg)
-        }
-        
-      },
-      // Occurs when the token is about to expire.
-      onTokenWillExpire: () => {
-        printLogMessage('Token is about to expire')
-      },
-      // Occurs when the token has expired. 
-      onTokenExpired: () => {
-        printLogMessage('The token has expired')
-      },
-      onError: (error) => {
-        printLogMessage("error event, please see the console")
-        console.error("on error", error);
-      },  
-      onChatroomEvent:(eventData)=> {
-        printChatMessage('chatRoom', `${eventData.name}`)
-      },
-    });
-   }
+    try{
+      agoraConn.current = await new AC.connection({
+        appKey: '611016787#1187288',
+      })
+
+
+        agoraConn.current.addEventHandler("connection&message", {
+          // Occurs when the app is connected to Agora Chat.
+          onConnected: () => {
+            printLogMessage('Connect success !')
+          },
+          // Occurs when the app is disconnected from Agora Chat.
+          onDisconnected: () => {
+            printLogMessage('Logout success !')
+          },
+          // Occurs when a text message is received.
     
+          onTextMessage: (message) => {
+    
+            if(message.chatType === 'chatRoom' || message.chatType === 'singleChat'){
+              printChatMessage( message.chatType,`${message.from}: ${message.msg}`)
+            }else{
+              printLogMessage("Message from: " + message.from + " Message: " + message.msg)
+            }
+            
+          },
+          // Occurs when the token is about to expire.
+          onTokenWillExpire: () => {
+            printLogMessage('Token is about to expire')
+          },
+          // Occurs when the token has expired. 
+          onTokenExpired: () => {
+            printLogMessage('The token has expired')
+          },
+          onError: (error) => {
+            printLogMessage("error event, please see the console")
+            console.error("on error", error);
+          },  
+          onChatroomEvent:(eventData)=> {
+            printChatMessage('chatRoom', `${eventData}`)
+          },
+        });
+       
+    }catch(error){
+      console.error(error)
+    }
   }
 
   //inputs handler's
@@ -104,9 +112,9 @@ const SimpleAgoraChat = () =>{
   //login/logout
 
   const handleLogin = ()=>{
-    if(userId && userToken && conn){
+    if(userId && userToken && agoraConn.current){
         try{
-          conn.open({
+          agoraConn.current.open({
             user: userId,
             agoraToken: userToken,
           });
@@ -118,7 +126,7 @@ const SimpleAgoraChat = () =>{
   }
 
   const handleLogout = ()=>{
-    conn && conn.close();
+    agoraConn.current && agoraConn.current.close();
   }
   // end login/logout
 
@@ -139,8 +147,8 @@ const SimpleAgoraChat = () =>{
 
     let msg = AC.message.create(option);
 
-    if(conn){
-      conn.send(msg).then((res) => {
+    if(agoraConn.current){
+      agoraConn.current.send(msg).then((res) => {
         printLogMessage(`send text success. localMsgId: ${res.localMsgId}. serverMsgId:${res.serverMsgId}`)
       }).catch((error) => {
         printLogMessage("send private text fail, please see the console");
@@ -151,12 +159,12 @@ const SimpleAgoraChat = () =>{
   }
 
   const handleJoinChatRoom = ()=>{
-    if(conn){
+    if(agoraConn.current){
       let option = {
           roomId: '223229872504833',
           message: 'reason'
       }
-      conn.joinChatRoom(option).then(
+      agoraConn.current.joinChatRoom(option).then(
         res => printLogMessage(`joined to the chatRoom: ${res.data?.id}`)
       ).catch((error) => {
         printLogMessage("join to chatRoom fail, please see the console");
@@ -188,26 +196,24 @@ const SimpleAgoraChat = () =>{
   //useEffect
 
   useEffect(()=>{
-    setConn(new AC.connection({
-      appKey: '611016787#1187288',
-    }))
 
+    startConnection()
     //cleant the event handler when the aplication are closed or reloaded
     return ()=>{
       console.log('holi')
-      if(conn){
-        conn.removeEventHandler("connection&message")
+      if(agoraConn.current){
+        agoraConn.current.removeEventHandler("connection&message")
       }
       
     }
   },[])
 
-  useEffect(()=>{
-    if(conn){
-      console.log('starting events')
-      startEventListeners()
-    }
-  },[conn])
+  // useEffect(()=>{
+  //   if(agoraConn.current){
+  //     console.log('starting events')
+  //     startEventListeners()
+  //   }
+  // },[agoraConn.current])
 
   return (  
     <div className='SimpleAgoraChatContainer'>
